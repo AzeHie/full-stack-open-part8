@@ -1,0 +1,10 @@
+.authors__updateForm {
+  display: flex;
+  flex-direction: column;
+  width: 40%;
+}
+
+.authors__updateForm button {
+  width: 30%;
+  margin-top: 5px;
+}
