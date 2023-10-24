@@ -4,7 +4,7 @@ import './Authors.css';
 import { useMutation } from '@apollo/client';
 import { ALL_AUTHORS, UPDATE_AUTHOR } from '../Util/Queries';
 
-const Authors = ({ show, authors }) => {
+const Authors = ({ show, authors, setError }) => {
   const [name, setName] = useState('');
   const [born, setBorn] = useState(0);
 
@@ -12,7 +12,7 @@ const Authors = ({ show, authors }) => {
     refetchQueries: [{ query: ALL_AUTHORS }],
     onError: (error) => {
       const messages = error.graphQLErrors.map((e) => e.message).join('\n');
-      console.log(messages);
+      setError(messages);
     },
   });
 
@@ -35,10 +35,10 @@ const Authors = ({ show, authors }) => {
       });
 
       if (result.data.editAuthor === null) {
-        console.log('Author do not exist');
+        setError('Author do not exist');
       }
     } catch (err) {
-      console.log(err);
+      setError(err);
     }
 
     setName('');

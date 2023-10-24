@@ -21,6 +21,8 @@ const NewBook = (props) => {
   const submit = async (event) => {
     event.preventDefault();
 
+    console.log(typeof published);
+
     createBook({ variables: { title, author, published, genres } });
 
     setTitle('');
