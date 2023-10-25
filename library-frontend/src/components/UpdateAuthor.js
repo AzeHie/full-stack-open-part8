@@ -1,6 +1,7 @@
+import Select from 'react-select';
+
 import { useMutation } from '@apollo/client';
 import { useState } from 'react';
-import Select from 'react-select';
 import { ALL_AUTHORS, UPDATE_AUTHOR } from '../Util/Queries';
 
 const UpdateAuthor = ({ setError, authors }) => {
@@ -19,7 +20,7 @@ const UpdateAuthor = ({ setError, authors }) => {
     return { value: a.name, label: a.name };
   });
 
-  const submitBirthYear = async (e) => {
+  const onSubmitBirthYear = async (e) => {
     e.preventDefault();
 
     let bornToInt = parseInt(born, 10);
@@ -43,7 +44,7 @@ const UpdateAuthor = ({ setError, authors }) => {
   return (
     <div>
       <h2>Update author's birthday:</h2>
-      <form className='authors__updateForm' onSubmit={submitBirthYear}>
+      <form className='authors__updateForm' onSubmit={onSubmitBirthYear}>
         <Select
           defaultValue={authorOptions[0]}
           options={authorOptions}
