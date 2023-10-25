@@ -143,7 +143,7 @@ const resolvers = {
     authorCount: () => Author.collection.countDocuments(),
     bookCount: () => Book.collection.countDocuments(),
     allAuthors: () => Author.find({}),
-    allBooks: (root, args) => {
+    allBooks: async (root, args) => {
       // let modifiedBooks;
 
       if (args.author) {
@@ -156,12 +156,14 @@ const resolvers = {
         // modifiedBooks = books.filter((b) => b.genres.includes(args.genre));
         // return modifiedBooks;
       }
+
       return Book.find({});
     },
   },
   Mutation: {
     addBook: (root, args) => {
-      const book = { ...args, id: uuid() };
+      const book = new Book({ ...args });
+      console.log(book);
       return book.save();
     },
     editAuthor: (root, args) => {
