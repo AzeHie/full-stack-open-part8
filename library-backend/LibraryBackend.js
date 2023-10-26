@@ -4,9 +4,14 @@ const { v1: uuid } = require('uuid');
 
 const mongoose = require('mongoose');
 mongoose.set('strictQuery', false);
+
+const { GraphQLError } = require('graphql');
+
 const Author = require('./models/AuthorSchema');
 const Book = require('./models/BookSchema');
-const { GraphQLError } = require('graphql');
+const User = require('./models/UserSchema');
+
+const jwt = require('jsonwebtoken');
 
 require('dotenv').config();
 
@@ -24,6 +29,16 @@ mongoose
   });
 
 const typeDefs = `
+  type User {
+    username: String!
+    favoriteGenre: String!
+    id: ID!
+  }
+
+  type Token {
+    value: String!
+  }
+
   type Author {
     name: String!
     born: Int
@@ -44,6 +59,7 @@ const typeDefs = `
     bookCount: Int!
     allAuthors: [Author!]!
     allBooks(author: String, genre: String): [Book!]!
+    me: User
   }
 
   type Mutation {
@@ -58,11 +74,24 @@ const typeDefs = `
       name: String!
       setBornTo: Int!
     ): Author
+
+    createUser(
+      username: String!
+      favoriteGenre: String!
+    ) : User
+
+    login(
+      username: String!
+      password: String!
+    ) : Token
   }
 `;
 
 const resolvers = {
   Query: {
+    me: (root, args, context) => {
+      return context.currentUser;
+    },
     authorCount: () => Author.collection.countDocuments(),
     bookCount: () => Book.collection.countDocuments(),
     allAuthors: () => Author.find({}),
@@ -84,7 +113,7 @@ const resolvers = {
       } catch (err) {
         throw new GraphQLError('Fetching the books failed!', {
           extensions: {
-            code: 'FETCHING FAILED',
+            code: 'FETCHING_FAILED',
             err,
           },
         });
@@ -92,8 +121,19 @@ const resolvers = {
     },
   },
   Mutation: {
-    addBook: async (root, args) => {
+    addBook: async (root, args, context) => {
       const book = new Book({ ...args });
+      console.log(context);
+      const currentUser = context.currentUser;
+
+      if (!currentUser) {
+        throw new GraphQLError('not authenticated', {
+          extensions: {
+            code: 'BAD_USER_INPUT',
+          },
+        });
+      }
+
       try {
         await book.save();
       } catch (err) {
@@ -101,7 +141,7 @@ const resolvers = {
           'Adding a new book failed, check your details and try again!',
           {
             extensions: {
-              code: 'BAD USER INPUT',
+              code: 'BAD_USER_INPUT',
               err,
             },
           }
@@ -110,7 +150,17 @@ const resolvers = {
 
       return book;
     },
-    editAuthor: async (root, args) => {
+    editAuthor: async (root, args, context) => {
+      const currentUser = context.currentUser;
+
+      if (!currentUser) {
+        throw new GraphQLError('Not authenticated', {
+          extensions: {
+            code: 'BAD_USER_INPUT',
+          },
+        });
+      }
+
       try {
         const author = await Author.findOne({ name: args.name });
 
@@ -126,10 +176,63 @@ const resolvers = {
         throw new GraphQLError(
           'Author edition failed, please check your details and try again!',
           {
-            code: 'BAD USER INPUT',
-            err,
+            extensions: {
+              code: 'BAD_USER_INPUT',
+              err,
+            },
           }
         );
+      }
+    },
+    createUser: async (root, args) => {
+      const user = new User({
+        username: args.username,
+        favoriteGenre: args.favoriteGenre,
+      });
+
+      try {
+        await user.save();
+        return user;
+      } catch (err) {
+        throw new GraphQLError(
+          'Creating new user failed, check your details and try again',
+          {
+            extensions: {
+              code: 'BAD_USER_INPUT',
+              err,
+            },
+          }
+        );
+      }
+    },
+    login: async (root, args) => {
+      try {
+        const user = await User.findOne({ username: args.username });
+
+        if (!user || args.password !== 'salasana') {
+          throw new GraphQLError('Invalid credentials', {
+            extensions: {
+              code: 'BAD_USER_INPUT',
+            },
+          });
+        }
+
+        const userForToken = {
+          username: args.username,
+          id: user._id,
+        };
+
+        const token = jwt.sign(userForToken, process.env.JWT_SECRET);
+
+        return { value: token };
+      } catch (err) {
+        console.log(err);
+        throw new GraphQLError('Logging in failed', {
+          extensions: {
+            code: 'BAD_USER_INPUT',
+            err,
+          },
+        });
       }
     },
   },
@@ -159,6 +262,20 @@ const server = new ApolloServer({
 
 startStandaloneServer(server, {
   listen: { port: 4000 },
+  context: async ({ req, res }) => {
+    const auth = req ? req.headers.authorization : null;
+
+    if (auth && auth.startsWith('Bearer ')) {
+      const decodedToken = jwt.verify(
+        auth.substring(7),
+        process.env.JWT_SECRET
+      );
+
+      const currentUser = await User.findById(decodedToken.id);
+
+      return { currentUser };
+    }
+  },
 }).then(({ url }) => {
   console.log(`Server ready at ${url}`);
 });
