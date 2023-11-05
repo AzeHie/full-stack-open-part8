@@ -15,6 +15,7 @@ const App = () => {
   const authors = useQuery(ALL_AUTHORS);
   const books = useQuery(ALL_BOOKS);
 
+
   const notify = (errorMessage) => {
     setErrorMessage(errorMessage);
     setTimeout(() => {

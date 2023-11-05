@@ -7,6 +7,8 @@ const Books = ({ show, books }) => {
     return <div>Loading...</div>
   }
 
+  console.log(books);
+
   return (
     <div>
       <h2>books</h2>

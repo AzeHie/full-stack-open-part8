@@ -4,6 +4,7 @@ import './Authors.css';
 import UpdateAuthor from './UpdateAuthor';
 
 const Authors = ({ show, authors, setError }) => {
+  
   if (!show) {
     return null;
   }

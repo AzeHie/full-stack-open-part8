@@ -92,23 +92,57 @@ const resolvers = {
     me: (root, args, context) => {
       return context.currentUser;
     },
-    authorCount: () => Author.collection.countDocuments(),
-    bookCount: () => Book.collection.countDocuments(),
-    allAuthors: () => Author.find({}),
+    authorCount: async () => await Author.collection.countDocuments(),
+    bookCount: async () => await Book.collection.countDocuments(),
+    allAuthors: async () => await Author.find({}),
     allBooks: async (root, args) => {
       let books;
 
       try {
         if (args.author) {
+          const author = await Author.findOne({ name: args.author });
+
           books = await Book.find({ author: args.author });
-          return books;
+
+          return books.map((book) => ({
+            ...book,
+            author: author.name,
+          }));
         }
         if (args.genre) {
           books = await Book.find({ genres: args.genre });
+
+          books = await Promise.all(
+            books.map(async (book) => {
+              const author = await Author.findById(book.author);
+              return {
+                id: book.id,
+                title: book.title,
+                published: book.published,
+                author: author.name,
+                genres: book.genres,
+              };
+            })
+          );
+
           return books;
         }
 
         books = await Book.find({});
+
+        books = await Promise.all(
+          books.map(async (book) => {
+            const author = await Author.findById(book.author);
+            return {
+              id: book.id,
+              title: book.title,
+              published: book.published,
+              author: author.name,
+              genres: book.genres,
+            };
+          })
+        );
+
         return books;
       } catch (err) {
         throw new GraphQLError('Fetching the books failed!', {
@@ -123,7 +157,7 @@ const resolvers = {
   Mutation: {
     addBook: async (root, args, context) => {
       const book = new Book({ ...args });
-      console.log(context);
+
       const currentUser = context.currentUser;
 
       if (!currentUser) {
@@ -226,7 +260,6 @@ const resolvers = {
 
         return { value: token };
       } catch (err) {
-        console.log(err);
         throw new GraphQLError('Logging in failed', {
           extensions: {
             code: 'BAD_USER_INPUT',
@@ -237,9 +270,10 @@ const resolvers = {
     },
   },
   Author: {
+    // chatgpt look this;
     bookCount: async (author) => {
       try {
-        const bookCount = await Book.countDocuments({ author: author.name });
+        const bookCount = await Book.countDocuments({ author: author._id });
 
         return bookCount;
       } catch (err) {
