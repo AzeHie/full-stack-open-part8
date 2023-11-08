@@ -1,9 +1,8 @@
 import { Fragment } from 'react';
 
 import './Authors.css';
-import UpdateAuthor from './UpdateAuthor';
 
-const Authors = ({ show, authors, setError }) => {
+const Authors = ({ show, authors }) => {
   
   if (!show) {
     return null;
@@ -35,7 +34,6 @@ const Authors = ({ show, authors, setError }) => {
         </table>
       </div>
       <br />
-      <UpdateAuthor setError={setError} authors={authors}/>
     </Fragment>
   );
 };

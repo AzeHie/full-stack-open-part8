@@ -4,7 +4,7 @@ import { useMutation } from '@apollo/client';
 import { useState } from 'react';
 import { ALL_AUTHORS, UPDATE_AUTHOR } from '../Util/Queries';
 
-const UpdateAuthor = ({ setError, authors }) => {
+const UpdateAuthor = ({ show, setError, authors, setPage }) => {
   const [selectedAuthor, setSelectedAuthor] = useState(null);
   const [born, setBorn] = useState(0);
 
@@ -15,6 +15,14 @@ const UpdateAuthor = ({ setError, authors }) => {
       setError(messages);
     },
   });
+
+  if (!show) {
+    return null;
+  }
+
+  if (authors.loading) {
+    return <div>Loading...</div>;
+  }
 
   const authorOptions = authors.data.allAuthors.map((a) => {
     return { value: a.name, label: a.name };
@@ -34,11 +42,14 @@ const UpdateAuthor = ({ setError, authors }) => {
         setError('Author do not exist');
       }
     } catch (err) {
-      setError(err);
+      setError(
+        'Failed to update the birthyear, check your details and try again.'
+      );
     }
 
     setBorn(0);
     setSelectedAuthor(null);
+    setPage('authors');
   };
 
   return (

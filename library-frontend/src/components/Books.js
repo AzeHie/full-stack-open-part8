@@ -6,9 +6,7 @@ const Books = ({ show, books }) => {
   if (books.loading) {
     return <div>Loading...</div>
   }
-
-  console.log(books);
-
+  
   return (
     <div>
       <h2>books</h2>

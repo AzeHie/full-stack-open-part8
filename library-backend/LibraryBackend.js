@@ -105,8 +105,11 @@ const resolvers = {
           books = await Book.find({ author: args.author });
 
           return books.map((book) => ({
-            ...book,
+            id: book.id,
+            title: book.title,
+            published: book.published,
             author: author.name,
+            genres: book.genres,
           }));
         }
         if (args.genre) {
@@ -131,6 +134,7 @@ const resolvers = {
         books = await Book.find({});
 
         books = await Promise.all(
+          // to make couple (or more) operations concurrently, in this case we wait result of author-query before continuing.
           books.map(async (book) => {
             const author = await Author.findById(book.author);
             return {
@@ -156,8 +160,6 @@ const resolvers = {
   },
   Mutation: {
     addBook: async (root, args, context) => {
-      const book = new Book({ ...args });
-
       const currentUser = context.currentUser;
 
       if (!currentUser) {
@@ -169,7 +171,17 @@ const resolvers = {
       }
 
       try {
+        const author = await Author.findOne({ name: currentUser.username });
+
+        const book = new Book({ ...args, author: author._id });
+
+        if (!author) {
+          return null;
+        }
+
         await book.save();
+
+        return book;
       } catch (err) {
         throw new GraphQLError(
           'Adding a new book failed, check your details and try again!',
@@ -181,8 +193,6 @@ const resolvers = {
           }
         );
       }
-
-      return book;
     },
     editAuthor: async (root, args, context) => {
       const currentUser = context.currentUser;
@@ -207,6 +217,7 @@ const resolvers = {
 
         return author;
       } catch (err) {
+        console.log(err);
         throw new GraphQLError(
           'Author edition failed, please check your details and try again!',
           {
@@ -270,7 +281,6 @@ const resolvers = {
     },
   },
   Author: {
-    // chatgpt look this;
     bookCount: async (author) => {
       try {
         const bookCount = await Book.countDocuments({ author: author._id });

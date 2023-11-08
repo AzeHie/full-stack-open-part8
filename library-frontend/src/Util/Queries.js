@@ -49,3 +49,11 @@ export const ALL_BOOKS = gql`
     }
   }
 `;
+
+export const LOGIN = gql`
+  mutation userlogin($username: String!, $password: String!) {
+    login(username: $username, password: $password) {
+      value
+    }
+  }
+`;
