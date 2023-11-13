@@ -37,6 +37,7 @@ const typeDefs = `
 
   type Token {
     value: String!
+    favoriteGenre: String!
   }
 
   type Author {
@@ -269,7 +270,7 @@ const resolvers = {
 
         const token = jwt.sign(userForToken, process.env.JWT_SECRET);
 
-        return { value: token };
+        return { value: token, favoriteGenre: user.favoriteGenre };
       } catch (err) {
         throw new GraphQLError('Logging in failed', {
           extensions: {

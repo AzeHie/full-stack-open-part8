@@ -5,7 +5,7 @@ import { LOGIN } from '../Util/Queries';
 
 import './LoginForm.css';
 
-const LoginForm = ({ show, setToken, setError, setPage }) => {
+const LoginForm = ({ show, setUser, setError, setPage }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
@@ -17,12 +17,12 @@ const LoginForm = ({ show, setToken, setError, setPage }) => {
 
   useEffect(() => {
     if (result.data) {
-      const token = result.data.login.value;
-      setToken(token);
-      localStorage.setItem('user-token', token);
+      const userData = { token: result.data.login.value, favoriteGenre: result.data.login.favoriteGenre  };
+      setUser(userData);
+      localStorage.setItem('user', userData);
       setPage('authors');
     }
-  }, [result.data, setToken, setPage]);
+  }, [result.data, setUser, setPage]);
 
   if (!show) {
     return null;
