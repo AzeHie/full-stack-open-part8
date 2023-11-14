@@ -15,11 +15,11 @@ const App = () => {
   const [page, setPage] = useState('authors');
   const [errorMessage, setErrorMessage] = useState(null);
   const [user, setUser] = useState(null);
+  const [selectedGenre, setSelectedGenre] = useState(null);
 
   const authors = useQuery(ALL_AUTHORS);
   const books = useQuery(ALL_BOOKS);
   const client = useApolloClient();
-
 
   const notify = (errorMessage) => {
     setErrorMessage(errorMessage);
@@ -54,7 +54,7 @@ const App = () => {
         setError={notify}
       />
 
-      <Books books={books} show={page === 'books'}/>
+      <Books selectedGenre={selectedGenre} setSelectedGenre={setSelectedGenre} allBooks={books} show={page === 'books'} />
 
       <NewBook show={page === 'add'} />
 

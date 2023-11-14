@@ -1,39 +1,42 @@
-import { useState } from 'react';
 import Select from 'react-select';
+import { useQuery } from '@apollo/client';
+import { ALL_BOOKS } from '../Util/Queries';
 
-const Books = ({ show, books }) => {
-  const [selectedGenre, setSelectedGenre] = useState(null);
-  const genreOptions = [];
-  const addedGenres = new Set();
+const Books = ({ show, allBooks, setSelectedGenre, selectedGenre }) => {
 
-  if (books.loading) {
-    return <p>Loading..</p>;
-  }
-
-  if (!books || !books.data || !books.data.allBooks) {
-    return <p>Data not found</p>;
-  }
+  const { loading, error, data } = useQuery(ALL_BOOKS, {
+    variables: { genre: selectedGenre },
+    skip: !selectedGenre,
+  });
 
   if (!show) {
     return null;
   }
 
-  let allBooks;
-  
-  allBooks = books.data.allBooks;
+  if (allBooks.loading || loading) {
+    return <p>Loading..</p>;
+  }
 
-  allBooks.forEach((b) => {
+  if (error) {
+    return <p>Oops, something went wrong. Please, try again!</p>;
+  }
+
+  if (!allBooks || !allBooks.data || !allBooks.data.allBooks) {
+    return <p>Data not found</p>;
+  }
+
+  const uniqueGenres = new Set();
+  const genreOptions = [];
+  const books = data ? data.allBooks : allBooks.data.allBooks;
+
+  allBooks.data.allBooks.forEach((b) => {
     b.genres.forEach((g) => {
-      if (!addedGenres.has(g)) {
+      if (!uniqueGenres.has(g)) {
         genreOptions.push({ value: g, label: g });
-        addedGenres.add(g);
+        uniqueGenres.add(g);
       }
     });
   });
-
-  if (selectedGenre) {
-    allBooks = allBooks.filter((b) => b.genres.includes(selectedGenre));
-  }
 
   const currentFilter = selectedGenre ? (
     <p>Books in genre {selectedGenre}:</p>
@@ -56,15 +59,15 @@ const Books = ({ show, books }) => {
             <th>published</th>
             <th>genres</th>
           </tr>
-          {allBooks.map((a) => (
+          {books.map((a) => (
             <tr key={a.title}>
               <td>{a.title}</td>
               <td>{a.author}</td>
               <td>{a.published}</td>
               <td>
-              {a.genres.map((g) => (
-                <span key={g}>{g} </span>
-              ))}
+                {a.genres.map((g) => (
+                  <span key={g}>{g} </span>
+                ))}
               </td>
             </tr>
           ))}
