@@ -17,8 +17,16 @@ const App = () => {
   const [user, setUser] = useState(null);
   const [selectedGenre, setSelectedGenre] = useState(null);
 
-  const authors = useQuery(ALL_AUTHORS);
-  const books = useQuery(ALL_BOOKS);
+  const authors = useQuery(ALL_AUTHORS, {
+    onError: () => {
+      notify('Failed to fetch authors, please try again later!')
+    }
+  });
+  const books = useQuery(ALL_BOOKS, {
+    onError: () => {
+      notify('Failed to fetch books, please try again later!')
+    }
+  });
   const client = useApolloClient();
 
   const notify = (errorMessage) => {
@@ -54,7 +62,7 @@ const App = () => {
         setError={notify}
       />
 
-      <Books selectedGenre={selectedGenre} setSelectedGenre={setSelectedGenre} allBooks={books} show={page === 'books'} />
+      <Books setError={notify} selectedGenre={selectedGenre} setSelectedGenre={setSelectedGenre} allBooks={books} show={page === 'books'} />
 
       <NewBook show={page === 'add'} />
 

@@ -2,11 +2,19 @@ import Select from 'react-select';
 import { useQuery } from '@apollo/client';
 import { ALL_BOOKS } from '../Util/Queries';
 
-const Books = ({ show, allBooks, setSelectedGenre, selectedGenre }) => {
-
+const Books = ({
+  setError,
+  show,
+  allBooks,
+  setSelectedGenre,
+  selectedGenre,
+}) => {
   const { loading, error, data } = useQuery(ALL_BOOKS, {
     variables: { genre: selectedGenre },
     skip: !selectedGenre,
+    onError: () => {
+      setError('Failed to fetch books by specified genre!');
+    },
   });
 
   if (!show) {
