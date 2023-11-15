@@ -64,7 +64,7 @@ const App = () => {
 
       <Books setError={notify} selectedGenre={selectedGenre} setSelectedGenre={setSelectedGenre} allBooks={books} show={page === 'books'} />
 
-      <NewBook show={page === 'add'} />
+      <NewBook show={page === 'add'} setPage={setPage} />
 
       <Recommendations books={books} user={user} show={page === 'recommend'}/>
 

@@ -3,7 +3,7 @@ import { useMutation } from '@apollo/client';
 
 import { ALL_BOOKS, CREATE_BOOK } from '../Util/Queries';
 
-const NewBook = (props) => {
+const NewBook = ({ show, setPage }) => {
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
   const [published, setPublished] = useState(0);
@@ -14,7 +14,7 @@ const NewBook = (props) => {
     refetchQueries: [{ query: ALL_BOOKS }],
   });
 
-  if (!props.show) {
+  if (!show) {
     return null;
   }
 
@@ -28,6 +28,7 @@ const NewBook = (props) => {
     setAuthor('');
     setGenres([]);
     setGenre('');
+    setPage('books');
   };
 
   const addGenre = () => {

@@ -159,6 +159,7 @@ const resolvers = {
       }
     },
   },
+
   Mutation: {
     addBook: async (root, args, context) => {
       const currentUser = context.currentUser;
@@ -173,17 +174,24 @@ const resolvers = {
 
       try {
         const author = await Author.findOne({ name: currentUser.username });
-
-        const book = new Book({ ...args, author: author._id });
+        let newAuthorData;
 
         if (!author) {
-          return null;
+          const newAuthor = new Author({
+            name: args.author,
+            year: 0
+          });
+
+          newAuthorData = await newAuthor.save();
         }
+
+        const book = new Book({ ...args, author: newAuthorData ? newAuthorData._id : author._id });
 
         await book.save();
 
         return book;
       } catch (err) {
+        console.log(err);
         throw new GraphQLError(
           'Adding a new book failed, check your details and try again!',
           {
@@ -309,6 +317,7 @@ startStandaloneServer(server, {
   listen: { port: 4000 },
   context: async ({ req, res }) => {
     const auth = req ? req.headers.authorization : null;
+    console.log(req.headers.authorization);
 
     if (auth && auth.startsWith('Bearer ')) {
       const decodedToken = jwt.verify(

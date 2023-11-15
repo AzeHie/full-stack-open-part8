@@ -19,7 +19,8 @@ const LoginForm = ({ show, setUser, setError, setPage }) => {
     if (result.data) {
       const userData = { token: result.data.login.value, favoriteGenre: result.data.login.favoriteGenre  };
       setUser(userData);
-      localStorage.setItem('user', userData);
+      localStorage.setItem('user-token', userData.token);
+      localStorage.setItem('favorite-genre', userData.favoriteGenre);
       setPage('authors');
     }
   }, [result.data, setUser, setPage]);
