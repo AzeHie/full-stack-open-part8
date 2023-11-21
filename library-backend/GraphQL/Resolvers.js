@@ -1,9 +1,10 @@
 const { GraphQLError } = require('graphql');
 
+const { PubSub } = require('graphql-subscriptions');
+const pubsub = new PubSub();
+
 const Author = require('../models/AuthorSchema');
 const Book = require('../models/BookSchema');
-
-
 
 const resolvers = {
   Query: {
@@ -80,6 +81,7 @@ const resolvers = {
   Mutation: {
     addBook: async (root, args, context) => {
       const currentUser = context.currentUser;
+      let book;
 
       if (!currentUser) {
         throw new GraphQLError('not authenticated', {
@@ -96,17 +98,19 @@ const resolvers = {
         if (!author) {
           const newAuthor = new Author({
             name: args.author,
-            year: 0
+            year: 0,
           });
 
           newAuthorData = await newAuthor.save();
         }
 
-        const book = new Book({ ...args, author: newAuthorData ? newAuthorData._id : author._id });
+        book = new Book({
+          ...args,
+          author: newAuthorData ? newAuthorData._id : author._id,
+        });
 
         await book.save();
 
-        return book;
       } catch (err) {
         console.log(err);
         throw new GraphQLError(
@@ -119,6 +123,10 @@ const resolvers = {
           }
         );
       }
+
+      pubsub.publish('BOOK_ADDED', { bookAdded: book });
+
+      return book;
     },
     editAuthor: async (root, args, context) => {
       const currentUser = context.currentUser;
@@ -223,6 +231,11 @@ const resolvers = {
       }
     },
   },
+  Subscription: {
+    bookAdded: {
+      subscribe: () => pubsub.asyncIterator('BOOK_ADDED')
+    }
+  }
 };
 
 module.exports = resolvers;
