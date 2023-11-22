@@ -7,6 +7,8 @@ const Author = require('../models/AuthorSchema');
 const Book = require('../models/BookSchema');
 const User = require('../models/UserSchema');
 
+const { bookCountLoader } = require('../DataLoaders');
+
 const jwt = require('jsonwebtoken');
 
 const resolvers = {
@@ -221,10 +223,11 @@ const resolvers = {
   Author: {
     bookCount: async (author) => {
       try {
-        const bookCount = await Book.countDocuments({ author: author._id });
+        const bookCount = await bookCountLoader.load(author._id);
 
         return bookCount;
       } catch (err) {
+        console.log(err);
         throw new GraphQLError(
           'Book count is not available, please try again!',
           {

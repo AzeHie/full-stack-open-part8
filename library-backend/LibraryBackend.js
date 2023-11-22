@@ -18,9 +18,8 @@ const mongoose = require('mongoose');
 mongoose.set('strictQuery', false);
 
 const User = require('./models/UserSchema');
-
 const typeDefs = require('./GraphQL/Schema');
-const resolvers = require('./GraphQL/Resolvers');
+const resolvers = require('./GraphQL/Resolvers'); 
 
 require('dotenv').config();
 
