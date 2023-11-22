@@ -17,11 +17,19 @@ const App = () => {
   const [errorMessage, setErrorMessage] = useState(null);
   const [user, setUser] = useState(null);
   const [selectedGenre, setSelectedGenre] = useState(null);
+  const client = useApolloClient();
 
   useSubscription(BOOK_ADDED, {
     onData: ({ data }) => {
       const bookTitle = data.data.bookAdded.title;
-      notify(`New book: ${bookTitle} was added to the book list!`)
+      const addedBook = data.data.bookAdded;
+      notify(`New book: ${bookTitle} was added to the book list!`);
+
+      client.cache.updateQuery({ query: ALL_BOOKS }, ({ allBooks }) => {
+        return {
+          allBooks: allBooks.concat(addedBook),
+        };
+      });
     },
   });
 
@@ -35,7 +43,6 @@ const App = () => {
       notify('Failed to fetch books, please try again later!');
     },
   });
-  const client = useApolloClient();
 
   const notify = (errorMessage) => {
     setErrorMessage(errorMessage);
