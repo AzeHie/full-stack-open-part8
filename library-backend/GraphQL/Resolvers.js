@@ -5,6 +5,9 @@ const pubsub = new PubSub();
 
 const Author = require('../models/AuthorSchema');
 const Book = require('../models/BookSchema');
+const User = require('../models/UserSchema');
+
+const jwt = require('jsonwebtoken');
 
 const resolvers = {
   Query: {
@@ -205,6 +208,7 @@ const resolvers = {
 
         return { value: token, favoriteGenre: user.favoriteGenre };
       } catch (err) {
+        console.log(err);
         throw new GraphQLError('Logging in failed', {
           extensions: {
             code: 'BAD_USER_INPUT',
